@@ -5,6 +5,7 @@ import { auth } from './firebase'
 import '@fortawesome/fontawesome-free/css/all.css'
 import ElementPlus from 'element-plus'
 import 'element-plus/dist/index.css'
+import store from './store';
 
 // Inicializa la app
 const app = createApp(App)

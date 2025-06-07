@@ -1,66 +1,80 @@
 <template>
-  <div class="home-container">
-    <!-- Header con información del usuario -->
-    <header class="user-header">
-      <div class="user-info">
+  <div class="dashboard-container">
+    <!-- Header -->
+    <header class="dashboard-header">
+      <div class="user-profile">
         <div class="avatar">
-          <i class="fas fa-user-circle"></i>
+          {{ userName.charAt(0).toUpperCase() }}
         </div>
-        <div class="user-details">
-            <h2>¡Hola, {{ userName }}!</h2>
-            <p>{{ userEmail }}</p>
-            <p><strong>Rol:</strong> {{ userRole }}</p> <!-- ← Aquí se muestra el Rol -->
+        <div class="user-info">
+          <h2>¡Hola, {{ userName }}!</h2>
+          <p class="user-email">{{ userEmail }}</p>
+          <span class="user-role">{{ userRole }}</span>
         </div>
-
-        
       </div>
       <button @click="handleLogout" class="logout-btn">
         <i class="fas fa-sign-out-alt"></i>
       </button>
     </header>
 
-    <!-- Sección principal con iconos -->
-    <main class="dashboard">
-      <h3 class="section-title">Mis Acciones Rápidas</h3>
-
-      <div class="icon-grid">
-
-        <router-link to="/crear-usuario" class="icon-card">
-          <i class="fas fa-user-plus"></i> Registrar Usuario
+    <!-- Quick Actions -->
+    <section class="quick-actions">
+      <h3><i class="fas fa-bolt"></i> Acciones Rápidas</h3>
+      <div class="actions-grid">
+        <router-link to="/crear-usuario" class="action-card">
+          <div class="action-icon bg-blue">
+            <i class="fas fa-user-plus"></i>
+          </div>
+          <span>Registrar Usuario</span>
         </router-link>
 
-        <router-link to="/lista-clientes" class="icon-card">
-          <i class="fas fa-user-plus"></i> Lista Clientes
+        <router-link to="/lista-clientes" class="action-card">
+          <div class="action-icon bg-green">
+            <i class="fas fa-users"></i>
+          </div>
+          <span>Lista Clientes</span>
         </router-link>
         
-        <router-link v-if="userRole === 'admin'" to="/rutas" class="icon-card">
-          <i class="fas fa-user-plus"></i> Crear Ruta
+        <router-link v-if="userRole === 'admin'" to="/rutas" class="action-card">
+          <div class="action-icon bg-orange">
+            <i class="fas fa-route"></i>
+          </div>
+          <span>Gestionar Rutas</span>
         </router-link>
       </div>
-    </main>
+    </section>
 
-    <!-- Notificaciones recientes -->
-    <section class="notifications">
-      <h3 class="section-title">Notificaciones Recientes</h3>
-      <ul class="notification-list">
-        <li
-          v-for="(notification, index) in notifications"
+    <!-- Notifications -->
+    <section class="notifications-section">
+      <div class="notifications-header">
+        <h3><i class="fas fa-bell"></i> Notificaciones</h3>
+        <button @click="markAllAsRead" v-if="hasUnread" class="mark-read-btn">
+          Marcar todas como leídas
+        </button>
+      </div>
+      <div class="notifications-list">
+        <div 
+          v-for="(notif, index) in notifications" 
           :key="index"
           class="notification-item"
+          :class="{ 'unread': !notif.read }"
+          @click="markAsRead(index)"
         >
-          <i :class="notification.icon"></i>
-          <div class="notification-content">
-            <p>{{ notification.message }}</p>
-            <small>{{ notification.time }}</small>
+          <div :class="['notification-icon', notif.type]">
+            <i :class="notif.icon"></i>
           </div>
-        </li>
-      </ul>
+          <div class="notification-content">
+            <p>{{ notif.message }}</p>
+            <small><i class="fas fa-clock"></i> {{ notif.time }}</small>
+          </div>
+        </div>
+      </div>
     </section>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { auth, db } from '@/firebase';
 import { signOut } from 'firebase/auth';
@@ -69,49 +83,52 @@ import { collection, query, where, getDocs } from 'firebase/firestore';
 const router = useRouter();
 const userEmail = ref('');
 const userName = ref('Usuario');
-const userRole = ref(''); // ← Nuevo campo para el rol
+const userRole = ref('user');
+
 const notifications = ref([
   {
-    icon: 'fas fa-check-circle success',
-    message: 'Tu sesión ha sido iniciada correctamente',
-    time: 'Hace 2 minutos'
+    icon: 'fas fa-check-circle',
+    message: 'Sesión iniciada correctamente',
+    time: 'Hace 2 minutos',
+    type: 'success',
+    read: true
   },
   {
-    icon: 'fas fa-bell warning',
-    message: 'Nuevo mensaje recibido',
-    time: 'Hace 1 hora'
+    icon: 'fas fa-envelope',
+    message: 'Tienes 3 nuevos clientes',
+    time: 'Hace 1 hora',
+    type: 'info',
+    read: false
   },
   {
-    icon: 'fas fa-info-circle info',
-    message: 'Actualización del sistema disponible',
-    time: 'Ayer'
+    icon: 'fas fa-exclamation-triangle',
+    message: 'Actualización disponible',
+    time: 'Ayer',
+    type: 'warning',
+    read: false
   }
 ]);
+
+const hasUnread = computed(() => notifications.value.some(n => !n.read));
 
 onMounted(async () => {
   const user = auth.currentUser;
   if (user) {
     userEmail.value = user.email;
-
+    
     try {
       const usersRef = collection(db, 'Users');
       const q = query(usersRef, where('Correo', '==', user.email));
-      const querySnapshot = await getDocs(q);
+      const snapshot = await getDocs(q);
 
-      if (!querySnapshot.empty) {
-        const userDoc = querySnapshot.docs[0];
-        const data = userDoc.data();
-        userName.value = data.Nombre || user.email.split('@')[0];
-        userRole.value = data.Rol || ''; // ← Obtiene el Rol del usuario
-      } else {
-        console.warn('No se encontró usuario con ese correo.');
-        userName.value = user.email.split('@')[0];
+      if (!snapshot.empty) {
+        const userData = snapshot.docs[0].data();
+        userName.value = userData.Nombre || user.email.split('@')[0];
+        userRole.value = userData.Rol || 'user';
       }
     } catch (error) {
-      console.error('Error al buscar el nombre del usuario:', error);
+      console.error("Error loading user data:", error);
     }
-  } else {
-    router.push('/login');
   }
 });
 
@@ -120,21 +137,31 @@ const handleLogout = async () => {
     await signOut(auth);
     router.push('/login');
   } catch (error) {
-    console.error('Error al cerrar sesión:', error);
+    console.error("Logout error:", error);
   }
+};
+
+const markAsRead = (index) => {
+  notifications.value[index].read = true;
+};
+
+const markAllAsRead = () => {
+  notifications.value.forEach(n => n.read = true);
 };
 </script>
 
-
 <style scoped>
-.home-container {
+/* Base Styles */
+.dashboard-container {
   max-width: 1200px;
   margin: 0 auto;
   padding: 20px;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   color: #333;
 }
 
-.user-header {
+/* Header */
+.dashboard-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -143,175 +170,221 @@ const handleLogout = async () => {
   border-radius: 12px;
   color: white;
   margin-bottom: 30px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
-.user-info {
+.user-profile {
   display: flex;
   align-items: center;
   gap: 15px;
 }
 
 .avatar {
-  font-size: 50px;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  font-weight: bold;
 }
 
-.user-details h2 {
+.user-info h2 {
   margin: 0;
-  font-size: 1.5rem;
+  font-size: 1.4rem;
 }
 
-.user-details p {
-  margin: 5px 0 0;
+.user-email {
+  margin: 5px 0;
   opacity: 0.9;
+  font-size: 0.9rem;
+}
+
+.user-role {
+  display: inline-block;
+  padding: 4px 10px;
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 20px;
+  font-size: 0.8rem;
 }
 
 .logout-btn {
   background: rgba(255, 255, 255, 0.2);
   border: none;
-  color: white;
   width: 40px;
   height: 40px;
   border-radius: 50%;
+  color: white;
   cursor: pointer;
-  font-size: 16px;
-  transition: all 0.3s;
+  transition: all 0.2s;
 }
 
 .logout-btn:hover {
   background: rgba(255, 255, 255, 0.3);
 }
 
-.section-title {
-  font-size: 1.3rem;
+/* Quick Actions */
+.quick-actions {
+  margin-bottom: 30px;
+}
+
+.quick-actions h3 {
   color: #4361ee;
-  margin-bottom: 20px;
-  padding-bottom: 10px;
-  border-bottom: 2px solid #f0f0f0;
-}
-
-.icon-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-  gap: 20px;
-  margin-bottom: 40px;
-}
-
-.icon-card {
   display: flex;
-  flex-direction: column;
   align-items: center;
-  justify-content: center;
-  padding: 25px 15px;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.actions-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 20px;
+}
+
+.action-card {
   background: white;
-  border-radius: 10px;
+  border-radius: 12px;
+  padding: 20px;
+  text-align: center;
   text-decoration: none;
   color: #333;
-  transition: all 0.3s;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.05);
+  transition: all 0.2s;
   border: 1px solid #eee;
 }
 
-.icon-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
-  border-color: #4361ee;
+.action-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
 }
 
-.icon-wrapper {
-  width: 60px;
-  height: 60px;
-  background: #f0f8ff;
-  border-radius: 50%;
+.action-icon {
+  width: 50px;
+  height: 50px;
+  border-radius: 12px;
+  margin: 0 auto 15px;
   display: flex;
   align-items: center;
   justify-content: center;
+  font-size: 20px;
+  color: white;
+}
+
+.bg-blue { background: #4361ee; }
+.bg-green { background: #2ec4b6; }
+.bg-orange { background: #f8961e; }
+
+/* Notifications */
+.notifications-section {
+  background: white;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.05);
+}
+
+.notifications-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   margin-bottom: 15px;
-  font-size: 24px;
+}
+
+.notifications-header h3 {
   color: #4361ee;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
 }
 
-.icon-card span {
-  font-size: 14px;
-  font-weight: 500;
-  text-align: center;
+.mark-read-btn {
+  background: none;
+  border: none;
+  color: #4361ee;
+  font-size: 0.8rem;
+  cursor: pointer;
 }
 
-.notification-list {
-  list-style: none;
-  padding: 0;
+.notifications-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 }
 
 .notification-item {
   display: flex;
   gap: 15px;
   padding: 15px;
-  background: white;
   border-radius: 8px;
-  margin-bottom: 10px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.notification-item.unread {
+  background: #f8f9fa;
+  border-left: 3px solid #4361ee;
+}
+
+.notification-item:hover {
+  background: #f1f3f5;
+}
+
+.notification-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  display: flex;
   align-items: center;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+  justify-content: center;
+  color: white;
 }
 
-.notification-item i {
-  font-size: 20px;
-}
-
-.notification-item i.success {
-  color: #4caf50;
-}
-
-.notification-item i.warning {
-  color: #ff9800;
-}
-
-.notification-item i.info {
-  color: #2196f3;
-}
+.notification-icon.success { background: #4cc9f0; }
+.notification-icon.info { background: #4895ef; }
+.notification-icon.warning { background: #f8961e; }
 
 .notification-content p {
-  margin: 0;
-  font-size: 14px;
+  margin: 0 0 5px 0;
 }
 
 .notification-content small {
-  color: #777;
-  font-size: 12px;
-}
-
-@media (max-width: 768px) {
-  .icon-grid {
-    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-    gap: 15px;
-  }
-  
-  .user-header {
-    flex-direction: column;
-    text-align: center;
-    gap: 15px;
-  }
-  
-  .user-info {
-    flex-direction: column;
-  }
-}
-.create-user-btn {
-  background-color: #4361ee;
-  color: white;
-  padding: 10px 15px;
-  border: none;
-  border-radius: 8px;
-  text-decoration: none;
-  font-weight: 500;
-  display: inline-flex;
+  color: #666;
+  font-size: 0.8rem;
+  display: flex;
   align-items: center;
-  gap: 8px;
-  margin-bottom: 20px;
-  transition: background 0.3s ease;
+  gap: 5px;
 }
 
-.create-user-btn:hover {
-  background-color: #364fc7;
+/* Responsive Design */
+@media (max-width: 768px) {
+  .dashboard-container {
+    padding: 15px;
+  }
+  
+  .dashboard-header {
+    flex-direction: column;
+    gap: 15px;
+    text-align: center;
+  }
+  
+  .user-profile {
+    flex-direction: column;
+  }
+  
+  .actions-grid {
+    grid-template-columns: 1fr 1fr;
+  }
 }
 
+@media (max-width: 480px) {
+  .actions-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .notification-item {
+    padding: 12px;
+  }
+}
 </style>

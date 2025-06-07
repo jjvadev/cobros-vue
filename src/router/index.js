@@ -37,7 +37,14 @@ const routes = [
     name: 'ClientesView',
     component: () => import('@/views/ClientesView.vue'), // Carga perezosa
     meta: { requiresAuth: true } // Solo usuarios autenticados
+  },
+  {
+    path: '/clientes/:clienteId/crear-prestamos',
+    name: 'CrearPrestamo',
+    component: () => import('@/views/CrearPrestamoView.vue'),
+    props: true
   }
+
 ]
 
 const router = createRouter({

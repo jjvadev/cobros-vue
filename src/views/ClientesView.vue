@@ -95,6 +95,10 @@
                 <button class="action-btn view" @click="verCliente(cliente.id)">
                   <i class="fas fa-eye"></i>
                 </button>
+                  <button class="action-btn create-loan" @click="CrearPrestamo(cliente.id)">
+                    <i class="fas fa-dollar-sign"></i>
+                  </button>
+                
                 <button class="action-btn edit" @click="editarCliente(cliente.id)">
                   <i class="fas fa-edit"></i>
                 </button>
@@ -300,12 +304,16 @@ const verCliente = (clienteId) => {
   router.push(`/clientes/${clienteId}`);
 };
 
+const CrearPrestamo = (clienteId) => {
+  router.push(`/clientes/${clienteId}/crear-prestamos`);
+};
+
 const editarCliente = (clienteId) => {
   router.push(`/clientes/editar/${clienteId}`);
 };
 
 const nuevoCliente = () => {
-  router.push('/clientes/nuevo');
+  router.push('/crear-usuario');
 };
 
 const confirmarEliminar = (clienteId) => {
