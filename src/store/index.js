@@ -1,14 +1,16 @@
-import { createStore } from 'vuex'
+import { defineStore } from 'pinia'
+import { auth } from '../firebase'
+import { onAuthStateChanged } from 'firebase/auth'
 
-export default createStore({
-  state: {
-  },
-  getters: {
-  },
-  mutations: {
-  },
+export const useAuthStore = defineStore('auth', {
+  state: () => ({
+    user: null
+  }),
   actions: {
-  },
-  modules: {
+    init() {
+      onAuthStateChanged(auth, (user) => {
+        this.user = user
+      })
+    }
   }
 })

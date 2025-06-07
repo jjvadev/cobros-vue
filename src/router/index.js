@@ -1,27 +1,65 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import HomeView from '../views/HomeView.vue'
+import { auth } from '@/firebase'
+
+// Importaciones de componentes
+import HomeView from '@/views/HomeView.vue'
+import LoginView from '@/views/LoginView.vue'
+import CrearUsuarioView from '@/views/CrearUsuarioView.vue'
+import RutasView from '@/views/RutasView.vue'
 
 const routes = [
   {
     path: '/',
-    name: 'home',
-    component: HomeView
+    name: 'Home',
+    component: HomeView,
+    meta: { requiresAuth: true } // Solo usuarios autenticados
   },
   {
-    path: '/about',
-    name: 'about',
-    // route level code-splitting
-    // this generates a separate chunk (about.[hash].js) for this route
-    // which is lazy-loaded when the route is visited.
-    component: function () {
-      return import(/* webpackChunkName: "about" */ '../views/AboutView.vue')
-    }
+    path: '/login',
+    name: 'Login',
+    component: LoginView,
+    meta: { requiresGuest: true } // Solo usuarios no autenticados
+  },
+  {
+    path: '/crear-usuario',
+    name: 'CrearUsuario',
+    component: CrearUsuarioView,
+    meta: { requiresAuth: true } // Solo usuarios autenticados
+  },
+  {
+    path: '/rutas',
+    name: 'Rutas',
+    component: RutasView,
+    meta: { requiresAuth: true } // Solo usuarios autenticados
   }
 ]
 
 const router = createRouter({
-  history: createWebHistory(process.env.BASE_URL),
+  history: createWebHistory(),
   routes
+})
+
+// Guardia de navegación global
+router.beforeEach(async (to, from, next) => {
+  // Esperar a que Firebase inicialice el estado del usuario
+  await new Promise(resolve => {
+    const unsubscribe = auth.onAuthStateChanged(user => {
+      unsubscribe()
+      resolve(user)
+    })
+  })
+
+  const isAuthenticated = auth.currentUser
+
+  if (to.meta.requiresAuth && !isAuthenticated) {
+    // Redirige a login si no está autenticado
+    next({ name: 'Login', query: { redirect: to.fullPath } })
+  } else if (to.meta.requiresGuest && isAuthenticated) {
+    // Redirige a Home si intenta ir a login ya estando autenticado
+    next({ name: 'Home' })
+  } else {
+    next()
+  }
 })
 
 export default router
