@@ -24,54 +24,17 @@
       <h3 class="section-title">Mis Acciones Rápidas</h3>
 
       <div class="icon-grid">
-        <router-link to="/profile" class="icon-card">
-          <div class="icon-wrapper">
-            <i class="fas fa-user-tie"></i>
-          </div>
-          <span>Mi Perfil</span>
-        </router-link>
-
-        <router-link to="/documents" class="icon-card">
-          <div class="icon-wrapper">
-            <i class="fas fa-file-alt"></i>
-          </div>
-          <span>Documentos</span>
-        </router-link>
 
         <router-link to="/crear-usuario" class="icon-card">
           <i class="fas fa-user-plus"></i> Registrar Usuario
         </router-link>
 
+        <router-link to="/lista-clientes" class="icon-card">
+          <i class="fas fa-user-plus"></i> Lista Clientes
+        </router-link>
+        
         <router-link v-if="userRole === 'admin'" to="/rutas" class="icon-card">
           <i class="fas fa-user-plus"></i> Crear Ruta
-        </router-link>
-
-        <router-link to="/messages" class="icon-card">
-          <div class="icon-wrapper">
-            <i class="fas fa-envelope"></i>
-          </div>
-          <span>Mensajes</span>
-        </router-link>
-
-        <router-link to="/settings" class="icon-card">
-          <div class="icon-wrapper">
-            <i class="fas fa-cog"></i>
-          </div>
-          <span>Ajustes</span>
-        </router-link>
-
-        <router-link to="/calendar" class="icon-card">
-          <div class="icon-wrapper">
-            <i class="fas fa-calendar-alt"></i>
-          </div>
-          <span>Calendario</span>
-        </router-link>
-
-        <router-link to="/reports" class="icon-card">
-          <div class="icon-wrapper">
-            <i class="fas fa-chart-bar"></i>
-          </div>
-          <span>Reportes</span>
         </router-link>
       </div>
     </main>

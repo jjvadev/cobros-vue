@@ -31,6 +31,12 @@ const routes = [
     name: 'Rutas',
     component: RutasView,
     meta: { requiresAuth: true } // Solo usuarios autenticados
+  },
+  {
+    path: '/lista-clientes',
+    name: 'ClientesView',
+    component: () => import('@/views/ClientesView.vue'), // Carga perezosa
+    meta: { requiresAuth: true } // Solo usuarios autenticados
   }
 ]
 
