@@ -260,6 +260,7 @@ const guardarPrestamo = async () => {
   // Avisar si está offline
   if (!navigator.onLine) {
     alert('Estás sin conexión. El préstamo se guardará localmente y se sincronizará cuando vuelvas a estar en línea.');
+    router.push(`/`);
   }
 
   try {
