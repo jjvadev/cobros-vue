@@ -224,10 +224,10 @@ const calcularProximoPago = () => {
       fecha.setDate(fecha.getDate() + 15);
       break;
     case '20 Dias':
-      fecha.setDate(fecha.getDate() + 1);
+      fecha.setDate(fecha.getDate() + 2);
       break;
     case '24 Dias':
-      fecha.setDate(fecha.getDate() + 1);
+      fecha.setDate(fecha.getDate() + 2);
       break;
   }
   
