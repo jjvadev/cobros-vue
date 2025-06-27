@@ -277,9 +277,6 @@ const guardarPrestamo = async () => {
     };
 
     const docRef = await addDoc(collection(db, 'Prestamos'), prestamoData);
-    if (!navigator.onLine) {
-      alert('Estás sin conexión. El préstamo se guardará localmente y se sincronizará cuando vuelvas a estar en línea.');
-    } 
     alert('¡Préstamo guardado exitosamente! ID: ' + docRef.id);
     router.push(`/`);
   } catch (error) {
