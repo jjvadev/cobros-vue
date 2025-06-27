@@ -39,6 +39,12 @@ const routes = [
     meta: { requiresAuth: true } // Solo usuarios autenticados
   },
   {
+    path: '/lista-prestamos',
+    name: 'VerPrestamosView',
+    component: () => import('@/views/VerPrestamosView.vue'), // Carga perezosa
+    meta: { requiresAuth: true } // Solo usuarios autenticados
+  },
+  {
     path: '/clientes/:id/crear-prestamos',
     name: 'CrearPrestamo',
     component: () => import('@/views/CrearPrestamoView.vue'),

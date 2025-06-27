@@ -34,6 +34,13 @@
           </div>
           <span>Lista Clientes</span>
         </router-link>
+
+        <router-link to="/lista-prestamos" class="action-card">
+          <div class="action-icon bg-green">
+            <i class="fas fa-money"></i>
+          </div>
+          <span>Lista Prestamos</span>
+        </router-link>
         
         <router-link v-if="userRole === 'admin'" to="/rutas" class="action-card">
           <div class="action-icon bg-orange">
