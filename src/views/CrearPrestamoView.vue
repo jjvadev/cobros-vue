@@ -257,6 +257,11 @@ const guardarPrestamo = async () => {
     return;
   }
 
+  // Avisar si está offline
+  if (!navigator.onLine) {
+    alert('Estás sin conexión. El préstamo se guardará localmente y se sincronizará cuando vuelvas a estar en línea.');
+  }
+
   try {
     const prestamoData = {
       clienteId: id, // Aquí está el cambio
