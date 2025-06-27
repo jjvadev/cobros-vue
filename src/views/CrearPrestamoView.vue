@@ -18,10 +18,11 @@
           <label for="valorPrestamo">Valor del Préstamo ($):</label>
           <input 
             type="number" 
+            inputmode="numeric"
             id="valorPrestamo" 
             v-model.number="prestamo.valorPrestamo" 
             @input="calcularTodo"
-            min="0"
+            
           >
         </div>
 
@@ -29,10 +30,11 @@
           <label for="interes">Tasa de Interés (%):</label>
           <input 
             type="number" 
+            inputmode="numeric"
             id="interes" 
             v-model.number="prestamo.interesFinal" 
             @input="calcularTodo"
-            min="0"
+            
             max="100"
             step="0.1"
           >
