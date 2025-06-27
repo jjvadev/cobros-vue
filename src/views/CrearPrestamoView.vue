@@ -1,412 +1,495 @@
 <template>
-  <div class="loan-container">
-    <div class="loan-header">
-      <h2><i class="fas fa-hand-holding-usd"></i> Nuevo Préstamo</h2>
-      <p class="client-info">Cliente ID: {{ clienteId }}</p>
-    </div>
+  <div class="crear-prestamo-container">
+    <header class="prestamo-header">
+      <h1>
+        <i class="fas fa-hand-holding-usd"></i> Nuevo Préstamo
+      </h1>
+      <div class="cliente-info">
+        <h3>{{ nombreCliente }}</h3>
+        <p><i class="fas fa-route"></i> {{ rutaCliente }}</p>
+      </div>
+    </header>
 
-    <div class="loan-form">
-      <!-- Monto -->
-      <div class="form-group">
-        <label for="monto"><i class="fas fa-money-bill-wave"></i> Monto del préstamo</label>
-        <div class="input-with-icon">
-          <span class="currency">$</span>
+    <div class="prestamo-form">
+      <div class="form-section">
+        <h2><i class="fas fa-calculator"></i> Datos del Préstamo</h2>
+        
+        <div class="form-group">
+          <label for="valorPrestamo">Valor del Préstamo ($):</label>
           <input 
-            id="monto"
             type="number" 
+            id="valorPrestamo" 
             v-model.number="prestamo.valorPrestamo" 
-            placeholder="Ej: 1000000"
-            min="0"
             @input="calcularTodo"
+            min="0"
           >
         </div>
-      </div>
 
-      <!-- Plazo -->
-      <div class="form-group">
-        <label for="plazo"><i class="fas fa-calendar-alt"></i> Plazo de pago</label>
-        <select 
-          id="plazo"
-          v-model="prestamo.plazoSeleccionado"
-          @change="calcularTodo"
-        >
-          <option value="20">20 Días (20 cuotas diarias)</option>
-          <option value="24">24 Días (24 cuotas diarias)</option>
-          <option value="7">Semanal (4 cuotas)</option>
-          <option value="15">Quincenal (2 cuotas)</option>
-          <option value="30">Mensual (1 cuota)</option>
-        </select>
-      </div>
-
-      <!-- Interés -->
-      <div class="form-group">
-        <label for="interes"><i class="fas fa-percentage"></i> Tasa de interés (%)</label>
-        <div class="input-with-icon">
+        <div class="form-group">
+          <label for="interes">Tasa de Interés (%):</label>
           <input 
-            id="interes"
             type="number" 
+            id="interes" 
             v-model.number="prestamo.interesFinal" 
-            placeholder="Ej: 10"
+            @input="calcularTodo"
             min="0"
             max="100"
             step="0.1"
-            @input="calcularTodo"
           >
-          <span class="percentage">%</span>
+        </div>
+
+        <div class="form-group">
+          <label for="tipoPago">Tipo de Pago:</label>
+          <select 
+            id="tipoPago" 
+            v-model="prestamo.selectedTipoPago" 
+            @change="calcularTodo"
+          >
+            <option value="Libre">Solo Interés (Libre)</option>
+            <option value="Interés + Capital">Interés + Capital</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="plazo">Plazo:</label>
+          <select 
+            id="plazo" 
+            v-model="prestamo.plazo" 
+            @change="calcularTodo"
+          >
+            <option value="Mensual">Mensual (1 cuota)</option>
+            <option value="Semanal">Semanal (4 cuotas)</option>
+            <option value="Quincenal">Quincenal (2 cuotas)</option>
+            <option value="20 Dias">20 Dias (20 cuotas)</option>
+            <option value="24 Dias">24 Dias (24 cuotas)</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Número de Cuotas:</label>
+          <input 
+            type="text" 
+            :value="numeroCuotas" 
+            readonly
+          >
+        </div>
+
+        <div class="form-group">
+          <label>Fecha de Inicio:</label>
+          <input 
+            type="date" 
+            v-model="prestamo.fechaInicio"
+            @change="calcularProximoPago"
+          >
         </div>
       </div>
 
-      <!-- Tipo de pago -->
-      <div class="form-group">
-        <label for="tipoPago"><i class="fas fa-calculator"></i> Tipo de pago</label>
-        <select 
-          id="tipoPago"
-          v-model="prestamo.selectedTipoPago"
-          @change="calcularTodo"
-        >
-          <option value="Libre">Libre</option>
-          <option value="Interés + Capital">Interés + Capital</option>
-        </select>
-      </div>
+      <div class="resultados-section">
+        <h2><i class="fas fa-chart-bar"></i> Resumen del Préstamo</h2>
+        
+        <div class="resultados-grid">
+          <div class="resultado-card">
+            <div class="resultado-label">Valor del Préstamo</div>
+            <div class="resultado-valor">$ {{ formatCurrency(prestamo.valorPrestamo) }}</div>
+          </div>
 
-      <!-- Resumen de cálculos -->
-      <div class="calculation-summary">
-        <h3><i class="fas fa-file-invoice-dollar"></i> Resumen del Préstamo</h3>
-        
-        <div class="summary-item">
-          <span>Valor total a pagar:</span>
-          <span class="amount">{{ calcularTotalPagar | currency }}</span>
-        </div>
-        
-        <div class="summary-item">
-          <span>Valor por cuota:</span>
-          <span class="amount">{{ valorCuota | currency }}</span>
-        </div>
-        
-        <div class="summary-item">
-          <span>Número de cuotas:</span>
-          <span>{{ numeroCuotas }}</span>
-        </div>
-        
-        <div class="summary-item">
-          <span>Interés total:</span>
-          <span>{{ interesTotal | currency }}</span>
-        </div>
-        
-        <div class="summary-item">
-          <span>Fecha próximo pago:</span>
-          <span>{{ proximoPago }}</span>
-        </div>
-      </div>
+          <div class="resultado-card">
+            <div class="resultado-label">Interés Total</div>
+            <div class="resultado-valor">$ {{ formatCurrency(interesTotal) }}</div>
+          </div>
 
-      <!-- Botones de acción -->
-      <div class="form-actions">
-        <button @click="cancelar" class="btn cancel">
-          <i class="fas fa-times"></i> Cancelar
-        </button>
-        <button @click="guardarPrestamo" class="btn submit" :disabled="!formValido">
-          <i class="fas fa-save"></i> Guardar Préstamo
-        </button>
+          <div class="resultado-card">
+            <div class="resultado-label">Valor por Cuota</div>
+            <div class="resultado-valor">$ {{ formatCurrency(valorCuota) }}</div>
+          </div>
+
+          <div class="resultado-card">
+            <div class="resultado-label">Total a Pagar</div>
+            <div class="resultado-valor">$ {{ formatCurrency(totalPagar) }}</div>
+          </div>
+
+          <div class="resultado-card">
+            <div class="resultado-label">Próximo Pago</div>
+            <div class="resultado-valor">{{ proximoPago || 'No calculado' }}</div>
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <button class="btn-cancelar" @click="cancelar">
+            <i class="fas fa-times"></i> Cancelar
+          </button>
+          <button 
+            class="btn-guardar" 
+            @click="guardarPrestamo"
+            :disabled="!formValido"
+          >
+            <i class="fas fa-save"></i> Guardar Préstamo
+          </button>
+        </div>
       </div>
     </div>
   </div>
 </template>
 
-<script>
-import { db } from '@/firebase';  // Ajusta la ruta según dónde tengas firebase.js
-import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+<script setup>
+import { ref, computed, onMounted } from 'vue';
+import { useRouter, useRoute } from 'vue-router';
+import { db } from '@/firebase';
+import { collection, addDoc } from 'firebase/firestore';
 
-export default {
-  props: ['clienteId'],
-  data() {
-    return {
-      prestamo: {
-        valorPrestamo: 0,
-        plazoSeleccionado: '20',
-        interesFinal: 0,
-        selectedTipoPago: 'Interés + Capital'
-      },
-      valorCuota: 0,
-      interesTotal: 0,
-      proximoPago: '',
-      formValido: false
+const router = useRouter();
+const route = useRoute();
+
+// Datos del cliente
+const id = route.params.id;
+const nombreCliente = route.query.nombreCliente || route.query.nombreCliente || 'Cliente';
+const rutaCliente = route.query.rutaCliente || 'Sin ruta';
+const cedulaCliente = route.query.cedula || '';
+
+// Datos del préstamo
+const prestamo = ref({
+  valorPrestamo: 0,
+  interesFinal: 0,
+  selectedTipoPago: 'Libre',
+  plazo: 'Mensual',
+  fechaInicio: new Date().toISOString().substr(0, 10)
+});
+
+// Variables calculadas
+const interesTotal = ref(0);
+const valorCuota = ref(0);
+const totalPagar = ref(0);
+const proximoPago = ref('');
+const formValido = ref(false);
+
+// Calcular número de cuotas basado en el plazo
+const numeroCuotas = computed(() => {
+  switch(prestamo.value.plazo) {
+    case 'Mensual': return 1;
+    case 'Semanal': return 4;
+    case 'Quincenal': return 2;
+    case '20 Dias': return 20;
+    case '24 Dias': return 24;
+    default: return 1;
+  }
+});
+
+// Formatear moneda
+const formatCurrency = (value) => {
+  if (!value) return '0';
+  return new Intl.NumberFormat('es-CO', {
+    style: 'decimal',
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0
+  }).format(value);
+};
+
+// Calcular todos los valores
+const calcularTodo = () => {
+  if (prestamo.value.valorPrestamo <= 0 || prestamo.value.interesFinal < 0) {
+    resetValores();
+    return;
+  }
+
+  interesTotal.value = prestamo.value.valorPrestamo * (prestamo.value.interesFinal / 100);
+
+  if (prestamo.value.selectedTipoPago === 'Libre') {
+    valorCuota.value = interesTotal.value / numeroCuotas.value;
+    totalPagar.value = interesTotal.value;
+  } else if (prestamo.value.selectedTipoPago === 'Interés + Capital') {
+    valorCuota.value = (prestamo.value.valorPrestamo + interesTotal.value) / numeroCuotas.value;
+    totalPagar.value = prestamo.value.valorPrestamo + interesTotal.value;
+  }
+
+  calcularProximoPago();
+  formValido.value = true;
+};
+
+// Calcular próxima fecha de pago
+const calcularProximoPago = () => {
+  if (!prestamo.value.fechaInicio) return;
+  
+  const fecha = new Date(prestamo.value.fechaInicio);
+  
+  switch(prestamo.value.plazo) {
+    case 'Mensual':
+      fecha.setMonth(fecha.getMonth() + 1);
+      break;
+    case 'Semanal':
+      fecha.setDate(fecha.getDate() + 7);
+      break;
+    case 'Quincenal':
+      fecha.setDate(fecha.getDate() + 15);
+      break;
+    case '20 Dias':
+      fecha.setDate(fecha.getDate() + 20);
+      break;
+    case '24 Dias':
+      fecha.setDate(fecha.getDate() + 24);
+      break;
+  }
+  
+  proximoPago.value = fecha.toLocaleDateString('es-CO');
+};
+
+// Resetear valores
+const resetValores = () => {
+  interesTotal.value = 0;
+  valorCuota.value = 0;
+  totalPagar.value = 0;
+  proximoPago.value = '';
+  formValido.value = false;
+};
+
+function formatearFecha(fechaISO) {
+  const fecha = new Date(fechaISO);
+  const dia = String(fecha.getDate()).padStart(2, '0');
+  const mes = String(fecha.getMonth() + 1).padStart(2, '0'); // Los meses van de 0 a 11
+  const anio = fecha.getFullYear();
+  return `${dia}/${mes}/${anio}`;
+}
+
+const fechaFormateada = formatearFecha(prestamo.value.fechaInicio);
+
+const guardarPrestamo = async () => {
+  if (!id) {
+    alert('No se encontró el ID del cliente. No se puede guardar el préstamo.');
+    return;
+  }
+
+  try {
+    const prestamoData = {
+      clienteId: id, // Aquí está el cambio
+      clienteNombre: nombreCliente,
+      Cedula: cedulaCliente,
+      Ruta: rutaCliente,
+      Valor_Prestamo: prestamo.value.valorPrestamo,
+      Prestamo_Inicial: prestamo.value.valorPrestamo,
+      Interes: prestamo.value.interesFinal,
+      Metodo_Pago: prestamo.value.selectedTipoPago,
+      plazo: prestamo.value.plazo,
+      cuotas: numeroCuotas.value,
+      valorCuota: valorCuota.value,
+      ValorTotal: totalPagar.value,
+      fechaInicio: formatearFecha(prestamo.value.fechaInicio),
+      Proximo_Pago: proximoPago.value,
+      Estado: 'Activo',
     };
-  },
-  computed: {
-    calcularTotalPagar() {
-      return this.prestamo.valorPrestamo + this.interesTotal;
-    },
-    numeroCuotas() {
-      switch(this.prestamo.plazoSeleccionado) {
-        case '7': return 4;   // Semanal
-        case '15': return 2;  // Quincenal
-        case '30': return 1;  // Mensual
-        default: return parseInt(this.prestamo.plazoSeleccionado); // Diario
-      }
-    }
-  },
-  methods: {
-    calcularTodo() {
-      if (this.prestamo.valorPrestamo <= 0 || this.prestamo.interesFinal < 0) {
-        this.resetValores();
-        return;
-      }
 
-      this.interesTotal = this.prestamo.valorPrestamo * (this.prestamo.interesFinal / 100);
-
-      if (this.prestamo.selectedTipoPago === 'Libre') {
-        this.valorCuota = (this.prestamo.valorPrestamo * (this.prestamo.interesFinal / 100)) / this.numeroCuotas;
-      } else if (this.prestamo.selectedTipoPago === 'Interés + Capital') {
-        this.valorCuota = (this.prestamo.valorPrestamo + this.interesTotal) / this.numeroCuotas;
-      }
-
-      this.calcularProximoPago();
-      this.formValido = true;
-    },
-    resetValores() {
-      this.valorCuota = 0;
-      this.interesTotal = 0;
-      this.formValido = false;
-    },
-    calcularProximoPago() {
-      const fecha = new Date();
-      const plazoDias = parseInt(this.prestamo.plazoSeleccionado);
-      fecha.setDate(fecha.getDate() + plazoDias);
-
-      this.proximoPago = fecha.toLocaleDateString('es-ES', {
-        weekday: 'long',
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric'
-      });
-    },
-    async guardarPrestamo() {
-      if (!this.formValido) {
-        alert('Formulario no válido.');
-        return;
-      }
-
-      const prestamoData = {
-        cliente_id: this.clienteId,
-        valor_prestamo: this.prestamo.valorPrestamo,
-        interes: this.prestamo.interesFinal,
-        plazo: this.prestamo.plazoSeleccionado,
-        tipo_pago: this.prestamo.selectedTipoPago,
-        valor_cuota: parseFloat(this.valorCuota.toFixed(2)),
-        total_pagar: this.calcularTotalPagar,
-        interes_total: this.interesTotal,
-        numero_cuotas: this.numeroCuotas,
-        fecha: serverTimestamp(),
-        proximo_pago: this.proximoPago,
-        estado: 'pendiente'
-      };
-
-      try {
-        const docRef = await addDoc(collection(db, 'Prestamos'), prestamoData);
-        console.log('Préstamo guardado con ID:', docRef.id);
-        this.$router.push('/');
-        this.$notify({
-          title: 'Éxito',
-          text: 'Préstamo creado correctamente',
-          type: 'success'
-        });
-      } catch (error) {
-        console.error('Error al guardar préstamo en Firebase:', error);
-        alert('Error al guardar el préstamo: ' + error.message);
-      }
-    },
-    cancelar() {
-      this.$router.push('/clientes');
-    }
-  },
-  filters: {
-    currency(value) {
-      if (!value) return '$0';
-      return '$' + value.toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,');
-    }
-  },
-  mounted() {
-    this.calcularTodo();
+    const docRef = await addDoc(collection(db, 'Prestamos'), prestamoData);
+    if (!navigator.onLine) {
+      alert('Estás sin conexión. El préstamo se guardará localmente y se sincronizará cuando vuelvas a estar en línea.');
+    } 
+    alert('¡Préstamo guardado exitosamente! ID: ' + docRef.id);
+    router.push(`/`);
+  } catch (error) {
+    alert('Error al guardar el préstamo: ' + error.message);
+    console.error('Error al guardar el préstamo:', error);
   }
 };
+
+// Cancelar y volver
+const cancelar = () => {
+  router.push(`/clientes/${id}`);
+};
+
+// Calcular al montar el componente si hay valores iniciales
+onMounted(() => {
+  if (prestamo.value.valorPrestamo > 0 && prestamo.value.interesFinal > 0) {
+    calcularTodo();
+  }
+});
 </script>
 
-
 <style scoped>
-/* Estilos idénticos al anterior ejemplo */
-.loan-container {
-  max-width: 600px;
+.crear-prestamo-container {
+  max-width: 1000px;
   margin: 0 auto;
-  padding: 2rem;
-  background: #fff;
+  padding: 20px;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.prestamo-header {
+  background: linear-gradient(135deg, #4361ee 0%, #3a0ca3 100%);
   border-radius: 12px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  padding: 20px;
+  color: white;
+  margin-bottom: 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 20px;
 }
 
-.loan-header {
-  text-align: center;
-  margin-bottom: 2rem;
-  color: #2c3e50;
-}
-
-.loan-header h2 {
+.prestamo-header h1 {
   margin: 0;
   font-size: 1.8rem;
   display: flex;
   align-items: center;
-  justify-content: center;
   gap: 10px;
 }
 
-.client-info {
-  color: #7f8c8d;
-  margin-top: 0.5rem;
+.cliente-info {
+  text-align: right;
 }
 
-.loan-form {
+.cliente-info h3 {
+  margin: 0;
+  font-size: 1.2rem;
+}
+
+.cliente-info p {
+  margin: 5px 0 0 0;
+  opacity: 0.9;
   display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 5px;
+}
+
+.prestamo-form {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 30px;
+}
+
+.form-section, .resultados-section {
+  background: white;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+}
+
+.form-section h2, .resultados-section h2 {
+  margin-top: 0;
+  margin-bottom: 20px;
+  font-size: 1.3rem;
+  color: #333;
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 
 .form-group {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
+  margin-bottom: 20px;
 }
 
 .form-group label {
+  display: block;
+  margin-bottom: 8px;
   font-weight: 500;
-  color: #34495e;
-  display: flex;
-  align-items: center;
-  gap: 8px;
+  color: #555;
 }
 
-input, select {
-  padding: 12px 15px;
+.form-group input, .form-group select {
+  width: 100%;
+  padding: 10px 12px;
   border: 1px solid #ddd;
   border-radius: 8px;
   font-size: 1rem;
-  transition: all 0.3s;
+  transition: border-color 0.3s;
 }
 
-input:focus, select:focus {
+.form-group input:focus, .form-group select:focus {
   outline: none;
-  border-color: #3498db;
-  box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+  border-color: #4361ee;
 }
 
-.input-with-icon {
-  position: relative;
-  display: flex;
-  align-items: center;
+.resultados-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 15px;
+  margin-bottom: 25px;
 }
 
-.input-with-icon .currency,
-.input-with-icon .percentage {
-  position: absolute;
-  font-weight: bold;
-  color: #7f8c8d;
-}
-
-.input-with-icon .currency {
-  left: 12px;
-}
-
-.input-with-icon .percentage {
-  right: 12px;
-}
-
-.input-with-icon input {
-  padding-left: 30px;
-  padding-right: 30px;
-  width: 100%;
-}
-
-.calculation-summary {
+.resultado-card {
   background: #f8f9fa;
-  border-radius: 10px;
-  padding: 1.5rem;
-  margin-top: 1rem;
+  border-radius: 8px;
+  padding: 15px;
+  border-left: 4px solid #4361ee;
 }
 
-.calculation-summary h3 {
-  margin-top: 0;
-  margin-bottom: 1rem;
-  color: #2c3e50;
-  display: flex;
-  align-items: center;
-  gap: 8px;
+.resultado-label {
+  font-size: 0.85rem;
+  color: #666;
+  margin-bottom: 5px;
 }
 
-.summary-item {
-  display: flex;
-  justify-content: space-between;
-  padding: 0.5rem 0;
-  border-bottom: 1px solid #eee;
-}
-
-.summary-item:last-child {
-  border-bottom: none;
-}
-
-.summary-item .amount {
-  font-weight: bold;
-  color: #27ae60;
+.resultado-valor {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #333;
 }
 
 .form-actions {
   display: flex;
-  gap: 1rem;
-  margin-top: 2rem;
+  justify-content: flex-end;
+  gap: 15px;
+  margin-top: 20px;
 }
 
-.btn {
-  flex: 1;
-  padding: 12px;
+.btn-cancelar, .btn-guardar {
+  padding: 10px 20px;
   border-radius: 8px;
   font-weight: 500;
   cursor: pointer;
   display: flex;
   align-items: center;
-  justify-content: center;
   gap: 8px;
   transition: all 0.3s;
 }
 
-.btn.cancel {
-  background: #f5f5f5;
-  color: #7f8c8d;
-  border: none;
+.btn-cancelar {
+  background: #f8f9fa;
+  color: #555;
+  border: 1px solid #ddd;
 }
 
-.btn.cancel:hover {
-  background: #e0e0e0;
+.btn-cancelar:hover {
+  background: #e9ecef;
 }
 
-.btn.submit {
-  background: #27ae60;
+.btn-guardar {
+  background: #4361ee;
   color: white;
   border: none;
 }
 
-.btn.submit:hover {
-  background: #219955;
+.btn-guardar:hover {
+  background: #3a0ca3;
 }
 
-.btn.submit:disabled {
-  background: #bdc3c7;
+.btn-guardar:disabled {
+  background: #ccc;
   cursor: not-allowed;
 }
 
 @media (max-width: 768px) {
-  .loan-container {
-    padding: 1.5rem;
+  .prestamo-form {
+    grid-template-columns: 1fr;
+  }
+  
+  .prestamo-header {
+    flex-direction: column;
+    text-align: center;
+  }
+  
+  .cliente-info {
+    text-align: center;
+  }
+  
+  .resultados-grid {
+    grid-template-columns: 1fr;
   }
   
   .form-actions {
     flex-direction: column;
+  }
+  
+  .btn-cancelar, .btn-guardar {
+    width: 100%;
+    justify-content: center;
   }
 }
 </style>

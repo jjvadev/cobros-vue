@@ -39,7 +39,7 @@ const routes = [
     meta: { requiresAuth: true } // Solo usuarios autenticados
   },
   {
-    path: '/clientes/:clienteId/crear-prestamos',
+    path: '/clientes/:id/crear-prestamos',
     name: 'CrearPrestamo',
     component: () => import('@/views/CrearPrestamoView.vue'),
     props: true

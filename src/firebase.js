@@ -20,5 +20,16 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
 
+// Activa la persistencia offline
+enableIndexedDbPersistence(db).catch((err) => {
+  if (err.code === 'failed-precondition') {
+    // Probablemente hay varias pestañas abiertas
+    console.warn('La persistencia offline solo puede estar habilitada en una pestaña a la vez.');
+  } else if (err.code === 'unimplemented') {
+    // El navegador no soporta todas las características necesarias
+    console.warn('El navegador no soporta la persistencia offline de Firestore.');
+  }
+});
+
 // Exporta los servicios que necesites
 export { db, auth };

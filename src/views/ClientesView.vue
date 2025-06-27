@@ -95,8 +95,13 @@
                 <button class="action-btn view" @click="verCliente(cliente.id)">
                   <i class="fas fa-eye"></i>
                 </button>
-                  <button class="action-btn create-loan" @click="CrearPrestamo(cliente.id)">
-                    <i class="fas fa-dollar-sign"></i>
+                  <button 
+                    class="action-btn create-loan" 
+                    @click="CrearPrestamo(cliente.id)"
+                    title="Crear nuevo préstamo"
+                  >
+                    <i class="fas fa-hand-holding-usd"></i>
+                    <span class="tooltip"></span>
                   </button>
                 
                 <button class="action-btn edit" @click="editarCliente(cliente.id)">
@@ -207,7 +212,15 @@
 import { ref, onMounted, computed } from 'vue';
 import { useRouter } from 'vue-router';
 import { db, auth } from '@/firebase';
-import { collection, query, where, getDocs, doc, deleteDoc } from 'firebase/firestore';
+import { 
+  collection, 
+  query, 
+  where, 
+  getDocs, 
+  getDoc, 
+  doc, 
+  deleteDoc 
+} from 'firebase/firestore';
 
 const router = useRouter();
 const clientes = ref([]);
@@ -305,7 +318,15 @@ const verCliente = (clienteId) => {
 };
 
 const CrearPrestamo = (clienteId) => {
-  router.push(`/clientes/${clienteId}/crear-prestamos`);
+  const cliente = clientes.value.find(c => c.id === clienteId);
+  router.push({
+    path: `/clientes/${clienteId}/crear-prestamos`,
+    query: {
+      nombreCliente: cliente.Nombre,
+      rutaCliente: cliente.RutaSeleccionada,
+      cedula: cliente.Cedula
+    }
+  });
 };
 
 const editarCliente = (clienteId) => {
